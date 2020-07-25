@@ -1,5 +1,31 @@
 library(shinydashboard)
-?icon
+library(ggplot2)
+library(shiny)
+library(dplyr)
+library(rvest)
+library(RCurl)
+library(ggplot2)
+library(httr)
+library(devtools)
+library(martirossaryan)
+library(wesanderson)
+library(RColorBrewer)
+library(colourpicker)
+library(shinythemes)
+library(readr)
+library(xlsx)
+library(rio)
+library(readxl)
+library(utf8)
+  
+download.file(url = "https://arcane-castle-95125.herokuapp.com/kargin.xlsx", destfile = 'kargin.xlsx', mode="wb")
+
+data <- data.frame(read_excel("kargin.xlsx"))
+
+data$Title <- as_utf8(data$Title)
+data$Category <- as_utf8(data$Category)
+data$Keywords <- as_utf8(data$Keywords)
+
 ui <- dashboardPage(skin='black',
   dashboardHeader(title = "Kargin Recommendation System"),
   ## Sidebar content
