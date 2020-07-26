@@ -17,10 +17,31 @@ library(xlsx)
 library(rio)
 library(readxl)
 library(utf8)
-  
+library(purrr)
+library(stringi)
+library(stringr)
+library(RecordLinkage)
+library(dplyr)
+
+getScore <- function(ref, words) {
+  wordlist <- expand.grid(words = words, ref = ref, stringsAsFactors = FALSE)
+  res <- wordlist %>% group_by(words) %>% mutate(match_score = jarowinkler(words, ref)) %>%
+    summarise(match = match_score[which.max(match_score)])
+  Reduce(sum, res[2:2], 0)
+}
+
+
+search <- function(data, words){
+  unsorted <- apply(data, 1, function(row){ 
+    getScore(unlist(strsplit(row[7], ";|,")),words) + getScore(unlist(strsplit(row[11], ";|,")),words)
+  })
+  data[order(unsorted,decreasing=T)[1:5],]
+}
+
 download.file(url = "https://arcane-castle-95125.herokuapp.com/kargin.xlsx", destfile = 'kargin.xlsx', mode="wb")
 
 data <- data.frame(read_excel("kargin.xlsx"))
+data$KeywordsEng = str_remove_all(stri_trans_general(data$Keywords, "armenian-latin/bgn"), "’")
 
 data$Title <- as_utf8(data$Title)
 data$Category <- as_utf8(data$Category)
