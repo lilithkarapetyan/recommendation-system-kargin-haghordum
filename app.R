@@ -3,6 +3,7 @@ library(ggplot2)
 library(shiny)
 library(dplyr)
 library(RCurl)
+library(RecordLinkage)
 library(wesanderson)
 library(shinythemes)
 library(xlsx)
@@ -12,7 +13,6 @@ library(utf8)
 library(purrr)
 library(stringi)
 library(stringr)
-library(dplyr)
 
 getScore <- function(ref, words) {
   wordlist <- expand.grid(words = words, ref = ref, stringsAsFactors = FALSE)
@@ -26,8 +26,32 @@ search <- function(data, words){
   unsorted <- apply(data, 1, function(row){ 
     getScore(unlist(strsplit(row[7], ";|,")),words) + getScore(unlist(strsplit(row[11], ";|,")),words)
   })
-  data[order(unsorted,decreasing=T)[1:5],]
+  data[order(unsorted,decreasing=T)[1:5],c('Url')]
 }
+
+
+
+searching_input<-function(kargin, input){
+  
+  if (input%in%kargin$Place){
+    a<-which(kargin$Place==input)
+    
+  }else if(input%in%kargin$Category){
+    a<-which(kargin$Category==input)
+    
+  }else if(input%in%kargin$Keywords){
+    a<-which(kargin$Keywords==input)
+    
+  }else{
+    a<-which(kargin$Category=="other")
+  }
+  
+  for (variable in  a) {
+    print(kargin$Url[variable])
+  }
+}
+
+
 
 download.file(url = "https://arcane-castle-95125.herokuapp.com/kargin.xlsx", destfile = 'kargin.xlsx', mode="wb")
 
@@ -37,6 +61,11 @@ data$KeywordsEng = str_remove_all(stri_trans_general(data$Keywords, "armenian-la
 data$Title <- as_utf8(data$Title)
 data$Category <- as_utf8(data$Category)
 data$Keywords <- as_utf8(data$Keywords)
+
+
+searching_input(data, "տուն")
+
+search(data, c("տուն"))
 
 ui <- dashboardPage(skin='black',
   dashboardHeader(title="Kargin Project"),
@@ -60,7 +89,9 @@ ui <- dashboardPage(skin='black',
       
       # Second tab content
       tabItem(tabName = "Search",
-              h2("Widgets tab content")
+              fluidRow(
+                box(htmlOutput('searchInput'), width = "100%")
+              )
       ),
       tabItem(tabName = "Analysis",
               h2("Widgets tab content")
@@ -70,15 +101,19 @@ ui <- dashboardPage(skin='black',
 )
 
 
-
 server <- function(input, output) {
   currQuiz <- reactiveVal(1)
+  questions <- c('question 1', 'question 2', 'question3')
   questionsValues <- rbind(c('tun', 'office', 'hivandanoc'), c('tun1', 'office1', 'hivandanoc1'), c('tun2', 'office2', 'hivandanoc2'))
   questionsLabels <- rbind(c('tun', 'office', 'hivandanoc'), c('tun1', 'office1', 'hivandanoc1'), c('tun2', 'office2', 'hivandanoc2'))
-  questions <- c('question 1', 'question 2', 'question3')
+  
   observeEvent(input$do, {
    newVal <- currQuiz()
    currQuiz(newVal+1)
+  })
+  
+  output$searchInput <- renderUI({
+    textInput(inputId = 'searchText', label = 'Search', placeholder = 'type...')
   })
   
   output$question <- renderUI({
@@ -89,36 +124,13 @@ server <- function(input, output) {
       )
     }
     else{
-      tags$div(
-        list(
-          tags$iframe(
-            width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
-          ),
-          tags$iframe(
-            width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
-          ),
-          tags$iframe(
-            width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
-          )
-        )
-      )
-    }
-  })
+      searchData <- search(data, 'տուն')
   
-  output$videos <- renderUI({
-    tags$div(
-      list(
-        tags$input(
-          width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
-        ),
-        tags$iframe(
-          width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
-        ),
-        tags$iframe(
-          width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
-        )
-      )
-    )
+      iframes <- as.list(sapply(searchData,function(x){ 
+            paste0('<iframe width="478" height="269" src="https://www.youtube.com/embed/', str_extract(x, '.{11}$') , '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
+      }))
+      tags$div(HTML(paste(iframes, collapse = "")))
+    }
   })
 }
 
