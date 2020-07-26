@@ -13,7 +13,6 @@ library(purrr)
 library(stringi)
 library(stringr)
 library(dplyr)
-library(learnr)
 
 getScore <- function(ref, words) {
   wordlist <- expand.grid(words = words, ref = ref, stringsAsFactors = FALSE)
@@ -40,7 +39,7 @@ data$Category <- as_utf8(data$Category)
 data$Keywords <- as_utf8(data$Keywords)
 
 ui <- dashboardPage(skin='black',
-  dashboardHeader(title = "Kargin Recommendation System"),
+  dashboardHeader(title="Kargin Project"),
   ## Sidebar content
   dashboardSidebar(
     sidebarMenu(
@@ -55,12 +54,7 @@ ui <- dashboardPage(skin='black',
       # First tab content
       tabItem(tabName = "Quiz",
               fluidRow(
-                box(plotOutput("plot1", height = 250)),
-                box(
-                  title = "Controls",
-                  sliderInput("slider", "Number of observations:", 1, 100, 50)
-                ),
-                box(htmlOutput("videos"))
+                box(htmlOutput('question'), width = "100%")
               )
       ),
       
@@ -78,22 +72,43 @@ ui <- dashboardPage(skin='black',
 
 
 server <- function(input, output) {
-  set.seed(122)
-  histdata <- rnorm(500)
-  
-  output$plot1 <- renderPlot({
-    data <- histdata[seq_len(input$slider)]
-    hist(data)
+  currQuiz <- reactiveVal(1)
+  questionsValues <- rbind(c('tun', 'office', 'hivandanoc'), c('tun1', 'office1', 'hivandanoc1'), c('tun2', 'office2', 'hivandanoc2'))
+  questionsLabels <- rbind(c('tun', 'office', 'hivandanoc'), c('tun1', 'office1', 'hivandanoc1'), c('tun2', 'office2', 'hivandanoc2'))
+  questions <- c('question 1', 'question 2', 'question3')
+  observeEvent(input$do, {
+   newVal <- currQuiz()
+   currQuiz(newVal+1)
   })
   
-  output$frame <- renderUI({
-    
+  output$question <- renderUI({
+    if(currQuiz() <= 3){
+      list(
+        radioButtons(inputId = paste0("q",currQuiz()), label = questions[currQuiz()],choiceValues = questionsValues[currQuiz(),], choiceNames = questionsLabels[currQuiz(),]),
+        actionButton("do", "Next")
+      )
+    }
+    else{
+      tags$div(
+        list(
+          tags$iframe(
+            width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+          ),
+          tags$iframe(
+            width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+          ),
+          tags$iframe(
+            width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+          )
+        )
+      )
+    }
   })
   
   output$videos <- renderUI({
     tags$div(
       list(
-        tags$iframe(
+        tags$input(
           width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
         ),
         tags$iframe(
