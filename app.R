@@ -86,11 +86,11 @@ ui <- dashboardPage(skin='black',
                 box(htmlOutput('question'), width = "100%")
               )
       ),
-      
       # Second tab content
       tabItem(tabName = "Search",
               fluidRow(
-                box(htmlOutput('searchInput'), width = "100%")
+                box(htmlOutput('searchInput'), width = "100%"),
+                box(htmlOutput('searchedVideos'), width = "100%")
               )
       ),
       tabItem(tabName = "Analysis",
@@ -116,6 +116,18 @@ server <- function(input, output) {
     textInput(inputId = 'searchText', label = 'Search', placeholder = 'type...')
   })
   
+  output$searchedVideos <- renderUI({
+    if(input$searchText == ''){
+      return() 
+    }
+
+    searchOutput <- search(data, input$searchText)
+    iframes <- as.list(sapply(searchOutput, function(x){ 
+      paste0('<iframe width="478" height="269" src="https://www.youtube.com/embed/', str_extract(x, '.{11}$') , '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
+    }))
+    tags$div(HTML(paste(iframes, collapse = "")))
+  })
+  
   output$question <- renderUI({
     if(currQuiz() <= 3){
       list(
@@ -124,6 +136,7 @@ server <- function(input, output) {
       )
     }
     else{
+      
       searchData <- search(data, 'տուն')
   
       iframes <- as.list(sapply(searchData,function(x){ 

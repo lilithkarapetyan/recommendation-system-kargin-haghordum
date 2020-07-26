@@ -5,8 +5,8 @@ account: lilithkarapetyan
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2613983
-bundleId: 3437694
+bundleId: 3438354
 url: https://lilithkarapetyan.shinyapps.io/kargin-haghordum/
-when: 1595777907.25877
+when: 1595794527.39253
 asMultiple: FALSE
 asStatic: FALSE
