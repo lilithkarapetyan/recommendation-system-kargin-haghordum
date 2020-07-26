@@ -2,17 +2,9 @@ library(shinydashboard)
 library(ggplot2)
 library(shiny)
 library(dplyr)
-library(rvest)
 library(RCurl)
-library(ggplot2)
-library(httr)
-library(devtools)
-library(martirossaryan)
 library(wesanderson)
-library(RColorBrewer)
-library(colourpicker)
 library(shinythemes)
-library(readr)
 library(xlsx)
 library(rio)
 library(readxl)
@@ -20,8 +12,8 @@ library(utf8)
 library(purrr)
 library(stringi)
 library(stringr)
-library(RecordLinkage)
 library(dplyr)
+library(learnr)
 
 getScore <- function(ref, words) {
   wordlist <- expand.grid(words = words, ref = ref, stringsAsFactors = FALSE)
@@ -64,11 +56,11 @@ ui <- dashboardPage(skin='black',
       tabItem(tabName = "Quiz",
               fluidRow(
                 box(plotOutput("plot1", height = 250)),
-                
                 box(
                   title = "Controls",
                   sliderInput("slider", "Number of observations:", 1, 100, 50)
-                )
+                ),
+                box(htmlOutput("frame"))
               )
       ),
       
@@ -83,6 +75,8 @@ ui <- dashboardPage(skin='black',
   )
 )
 
+
+
 server <- function(input, output) {
   set.seed(122)
   histdata <- rnorm(500)
@@ -90,6 +84,12 @@ server <- function(input, output) {
   output$plot1 <- renderPlot({
     data <- histdata[seq_len(input$slider)]
     hist(data)
+  })
+  
+  output$frame <- renderUI({
+    tags$iframe(
+      width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+    )
   })
 }
 
