@@ -60,7 +60,7 @@ ui <- dashboardPage(skin='black',
                   title = "Controls",
                   sliderInput("slider", "Number of observations:", 1, 100, 50)
                 ),
-                box(htmlOutput("frame"))
+                box(htmlOutput("videos"))
               )
       ),
       
@@ -87,8 +87,22 @@ server <- function(input, output) {
   })
   
   output$frame <- renderUI({
-    tags$iframe(
-      width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+    
+  })
+  
+  output$videos <- renderUI({
+    tags$div(
+      list(
+        tags$iframe(
+          width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+        ),
+        tags$iframe(
+          width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+        ),
+        tags$iframe(
+          width="478", height="269", src="https://www.youtube.com/embed/gwu63_WO7O8", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=T
+        )
+      )
     )
   })
 }
