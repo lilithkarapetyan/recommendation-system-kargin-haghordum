@@ -29,29 +29,37 @@ search <- function(data, words){
   data[order(unsorted,decreasing=T)[1:5],c('Url')]
 }
 
-
-
-searching_input<-function(kargin, input){
-  
-  if (input%in%kargin$Place){
-    a<-which(kargin$Place==input)
-    
-  }else if(input%in%kargin$Category){
-    a<-which(kargin$Category==input)
-    
-  }else if(input%in%kargin$Keywords){
-    a<-which(kargin$Keywords==input)
+searching_input<-function(kargin, input, input1, input2,input3 ){
+  if(input%in%kargin$Age_limit){
+    a0<-which(kargin$Age_limit==input)
+  }else{
+    a0<-which(kargin$Keywords=='other')
+  }
+  if (input1%in%kargin$Place){
+    a1<-which(kargin$Place==input1)
     
   }else{
-    a<-which(kargin$Category=="other")
+    a1<-which(kargin$Category=='other')
   }
   
-  for (variable in  a) {
-    print(kargin$Url[variable])
+  if(input2%in%kargin$Category){
+    a2<-which(kargin$Category==input2)
+  }else{
+    a2<-which(kargin$Category=='other')
   }
+  if(input3%in%kargin$Keywords){
+    a3<-which(kargin$Keywords==input3)
+  }else{
+    a3<-which(kargin$Category=='other')
+  }
+  a<-c(a0, a1, a2, a3)
+  
+  a<-unique(a)
+  a <- sapply(a, function(x){
+      kargin$Url[x]
+    })
+  return(a)
 }
-
-
 
 download.file(url = "https://arcane-castle-95125.herokuapp.com/kargin.xlsx", destfile = 'kargin.xlsx', mode="wb")
 
@@ -64,8 +72,6 @@ data$Category <- as_utf8(data$Category)
 data$Keywords <- as_utf8(data$Keywords)
 
 
-searching_input(data, "տուն")
-
 search(data, c("տուն"))
 
 ui <- dashboardPage(skin='black',
@@ -75,6 +81,7 @@ ui <- dashboardPage(skin='black',
     sidebarMenu(
       menuItem("Quiz", tabName = "Quiz", icon = icon("question")),
       menuItem("Search", tabName = "Search", icon = icon("search")),
+      menuItem("Top Kargins", tabName = "Top", icon = icon("star")),
       menuItem("Data Analysis", tabName = "Analysis", icon = icon("chart-pie"))
     )
   ),
@@ -92,6 +99,11 @@ ui <- dashboardPage(skin='black',
               fluidRow(
                 box(htmlOutput('searchInput'), width = "100%"),
                 box(htmlOutput('searchedVideos'), width = "100%")
+              )
+      ),
+      tabItem(tabName = "Top",
+              fluidRow(
+                box(htmlOutput('topKargins'), width = "100%")
               )
       ),
       tabItem(tabName = "Analysis",
@@ -173,14 +185,24 @@ server <- function(input, output) {
       )
     }
     else{
-      
-      searchData <- search(data, 'տուն')
+      searchData <- searching_input(data, "12+", "տուն", "harevanner", "gugo")
   
       iframes <- as.list(sapply(searchData,function(x){ 
             paste0('<iframe width="478" height="269" src="https://www.youtube.com/embed/', str_extract(x, '.{11}$') , '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
       }))
       tags$div(HTML(paste(iframes, collapse = "")))
     }
+  })
+  
+  output$topKargins <- renderUI({
+    tops <- head(data[order(-data$Views),], 20)
+    urls <- unique(tops$Url)
+    
+    
+    iframes <- as.list(sapply(urls,function(x){ 
+      paste0('<iframe width="478" height="269" src="https://www.youtube.com/embed/', str_extract(x, '.{11}$') , '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')
+    }))
+    tags$div(HTML(paste(iframes, collapse = "")))
   })
 }
 
