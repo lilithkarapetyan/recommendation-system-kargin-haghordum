@@ -149,8 +149,11 @@ server <- function(input, output) {
      scale_fill_manual(values = wes_palette( "Rushmore"),  name = "Relationship status")  +
      labs(title = "Avergae Views By Mood")
   )
+  options(scipen=999)
   output$viewsHist <- renderPlot(
-    hist(data$Views, xlab = "Views", main = "Histogram of Views")
+    ggplot(data) + 
+      geom_histogram(aes(x=Views, position = "identity"), fill = wes_palette( "Rushmore")[3])+
+      theme_bw()
   )
   
   output$searchedVideos <- renderUI({
