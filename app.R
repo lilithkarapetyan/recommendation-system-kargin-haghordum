@@ -94,7 +94,13 @@ ui <- dashboardPage(skin='black',
               )
       ),
       tabItem(tabName = "Analysis",
-              plotOutput("moodViewsPlot")
+              
+              fluidRow(
+                plotOutput("moodViewsPlot"),
+                plotOutput("viewsHist"),
+                plotOutput("ageViewsPlot"),
+                
+              )
       )
     )
   )
@@ -115,6 +121,19 @@ server <- function(input, output) {
   output$searchInput <- renderUI({
     textInput(inputId = 'searchText', label = 'Search', placeholder = 'type...')
   })
+  
+  ageViews <- setNames(aggregate(data[, 2:2], list(data$Age_limit), mean), c("AgeLimit", "AverageViews")) %>%
+    mutate(prop = round(AverageViews, digits = 1)) %>%
+    mutate(ypos = cumsum(prop)- 0.5*prop )
+  
+  output$ageViewsPlot <- renderPlot(
+    ggplot(ageViews, aes(x="", y=AverageViews, fill=AgeLimit)) +
+      geom_bar(stat="identity", width=1) +
+      coord_polar("y", start=0) +
+      theme_void() +
+      geom_text(aes(y = ypos, label = prop), color = "white", size=6) +
+      scale_fill_brewer(palette="Set1")
+  )
   moodViews <- setNames(aggregate(data[,2:2], list(data$Mood), mean), c("Mood", "AverageViews")) %>%
     mutate(prop = round(AverageViews, digits = 1)) %>%
     mutate(ypos = cumsum(prop)- 0.5*prop )
@@ -127,6 +146,10 @@ server <- function(input, output) {
       geom_text(aes(y = ypos, label = prop), color = "white", size=6) +
       scale_fill_brewer(palette="Set1")
   )
+  output$viewsHist <- renderPlot(
+    hist(data$Views, xlab = "Views", main = "Histogram of Views")
+  )
+  
   
   output$searchedVideos <- renderUI({
     if(input$searchText == ''){
