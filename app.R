@@ -12,6 +12,7 @@ library(utf8)
 library(purrr)
 library(stringi)
 library(stringr)
+library(wesanderson)
 
 getScore <- function(ref, words) {
   wordlist <- expand.grid(words = words, ref = ref, stringsAsFactors = FALSE)
@@ -97,9 +98,8 @@ ui <- dashboardPage(skin='black',
               
               fluidRow(
                 plotOutput("moodViewsPlot"),
-                plotOutput("viewsHist"),
                 plotOutput("ageViewsPlot"),
-                
+                plotOutput("viewsHist"),
               )
       )
     )
@@ -132,7 +132,9 @@ server <- function(input, output) {
       coord_polar("y", start=0) +
       theme_void() +
       geom_text(aes(y = ypos, label = prop), color = "white", size=6) +
-      scale_fill_brewer(palette="Set1")
+      scale_fill_manual(values = wes_palette( "Darjeeling1"),  name = "Relationship status")  +
+      labs(title = "Avergae Views By Age Limit")
+
   )
   moodViews <- setNames(aggregate(data[,2:2], list(data$Mood), mean), c("Mood", "AverageViews")) %>%
     mutate(prop = round(AverageViews, digits = 1)) %>%
@@ -144,12 +146,12 @@ server <- function(input, output) {
       coord_polar("y", start=0) +
       theme_void() +
       geom_text(aes(y = ypos, label = prop), color = "white", size=6) +
-      scale_fill_brewer(palette="Set1")
+     scale_fill_manual(values = wes_palette( "Rushmore"),  name = "Relationship status")  +
+     labs(title = "Avergae Views By Mood")
   )
   output$viewsHist <- renderPlot(
     hist(data$Views, xlab = "Views", main = "Histogram of Views")
   )
-  
   
   output$searchedVideos <- renderUI({
     if(input$searchText == ''){
