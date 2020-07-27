@@ -6,7 +6,6 @@ library(RCurl)
 library(RecordLinkage)
 library(wesanderson)
 library(shinythemes)
-library(xlsx)
 library(rio)
 library(readxl)
 library(utf8)
@@ -56,6 +55,7 @@ searching_input<-function(kargin, input){
 download.file(url = "https://arcane-castle-95125.herokuapp.com/kargin.xlsx", destfile = 'kargin.xlsx', mode="wb")
 
 data <- data.frame(read_excel("kargin.xlsx"))
+
 data$KeywordsEng = str_remove_all(stri_trans_general(data$Keywords, "armenian-latin/bgn"), "’")
 
 data$Title <- as_utf8(data$Title)
@@ -94,7 +94,7 @@ ui <- dashboardPage(skin='black',
               )
       ),
       tabItem(tabName = "Analysis",
-              h2("Widgets tab content")
+              plotOutput("moodViewsPlot")
       )
     )
   )
@@ -115,6 +115,18 @@ server <- function(input, output) {
   output$searchInput <- renderUI({
     textInput(inputId = 'searchText', label = 'Search', placeholder = 'type...')
   })
+  moodViews <- setNames(aggregate(data[,2:2], list(data$Mood), mean), c("Mood", "AverageViews")) %>%
+    mutate(prop = round(AverageViews, digits = 1)) %>%
+    mutate(ypos = cumsum(prop)- 0.5*prop )
+  
+  output$moodViewsPlot <- renderPlot(
+   ggplot(moodViews, aes(x="", y=AverageViews, fill=Mood)) +
+      geom_bar(stat="identity", width=1) +
+      coord_polar("y", start=0) +
+      theme_void() +
+      geom_text(aes(y = ypos, label = prop), color = "white", size=6) +
+      scale_fill_brewer(palette="Set1")
+  )
   
   output$searchedVideos <- renderUI({
     if(input$searchText == ''){
