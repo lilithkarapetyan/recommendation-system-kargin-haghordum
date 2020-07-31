@@ -134,32 +134,28 @@ server <- function(input, output) {
     textInput(inputId = 'searchText', label = 'Search', placeholder = 'type...')
   })
   
-  ageViews <- setNames(aggregate(data[, 2:2], list(data$Age_limit), mean), c("AgeLimit", "AverageViews")) %>%
-    mutate(prop = round(AverageViews, digits = 1)) %>%
-    mutate(ypos = cumsum(prop)- 0.5*prop )
+  ageViews <- setNames(aggregate(data[, 2:2], list(data$Age_limit), sum), c("AgeLimit", "Views"))
   
   output$ageViewsPlot <- renderPlot(
-    ggplot(ageViews, aes(x="", y=AverageViews, fill=AgeLimit)) +
+    ggplot(ageViews, aes(x=1, y=Views, fill=AgeLimit)) +
       geom_bar(stat="identity", width=1) +
       coord_polar("y", start=0) +
       theme_void() +
-      geom_text(aes(y = ypos, label = prop), color = "white", size=6) +
+      geom_text(aes(y = Views, label = Views), color = "white", position = position_stack(vjust = 0.5)) +
       scale_fill_manual(values = wes_palette( "Darjeeling1"),  name = "Relationship status")  +
-      labs(title = "Avergae Views By Age Limit")
+      labs(title = "Total Views By Age Limit")
 
   )
-  moodViews <- setNames(aggregate(data[,2:2], list(data$Mood), mean), c("Mood", "AverageViews")) %>%
-    mutate(prop = round(AverageViews, digits = 1)) %>%
-    mutate(ypos = cumsum(prop)- 0.5*prop )
+  moodViews <- setNames(aggregate(data[,2:2], list(data$Mood), sum), c("Mood", "Views"))
   
   output$moodViewsPlot <- renderPlot(
-   ggplot(moodViews, aes(x="", y=AverageViews, fill=Mood)) +
+   ggplot(moodViews, aes(x="", y=Views, fill=Mood)) +
       geom_bar(stat="identity", width=1) +
       coord_polar("y", start=0) +
       theme_void() +
-      geom_text(aes(y = ypos, label = prop), color = "white", size=6) +
+     geom_text(aes(y = Views, label = Views), color = "white", position = position_stack(vjust = 0.5)) +
      scale_fill_manual(values = wes_palette( "Rushmore"),  name = "Relationship status")  +
-     labs(title = "Avergae Views By Mood")
+     labs(title = "Total Views By Mood")
   )
   options(scipen=999)
   output$viewsHist <- renderPlot(
